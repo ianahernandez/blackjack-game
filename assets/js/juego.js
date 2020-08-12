@@ -9,27 +9,28 @@
 let deck = [];
 const types = ['C', 'D', 'H', 'S'];
 const specials = ['A', 'J', 'Q', 'K'];
-let pointsPlayer = 0, 
-    pointsComputer = 0;
+let pointsPlayer = 0,
+  pointsComputer = 0;
 
 /* Funciones */
 
 const createDeck = () => {
 
+  let newDeck = []
+
   for (let i = 2; i <= 10; i++) {
     for (ctype of types) {
-      deck.push(`${i}${ctype}`)
+      newDeck.push(`${i}${ctype}`)
     }
   }
 
   for (ctype of types) {
     for (let special of specials) {
-      deck.push(`${special}${ctype}`)
+      newDeck.push(`${special}${ctype}`)
     }
   }
 
-  deck = _.shuffle(deck);
-
+  deck = _.shuffle(newDeck);
   return deck;
 }
 
@@ -40,11 +41,39 @@ const takeADeck = () => {
   return deckRandom;
 }
 
-const deckValue = ( deck ) => {
+const deckValue = (deck) => {
   const value = deck.substring(0, deck.length - 1);
   return !isNaN(value) ? parseInt(value) : (value === 'A') ? 11 : 10;
 }
 
+const computerTurn = (minPoints) => {
+  do {
+    const deck = takeADeck();
+    pointsComputer = pointsComputer + deckValue(deck);
+    labelPoints[1].innerText = pointsComputer;
+
+    const imgDeck = document.createElement('img');
+    imgDeck.src = `./assets/cartas/${deck}.png`;
+    imgDeck.classList.add('deck');
+    computerDecks.append(imgDeck);
+
+    if (minPoints > 21) {
+      break;
+    }
+
+  } while ((pointsComputer < minPoints) && (minPoints <= 21));
+
+  setTimeout( () => {
+    if (pointsComputer === pointsPlayer || (pointsComputer > 21 && pointsPlayer > 21)) {
+      alert("Nadie gana :(");
+    } else if (pointsComputer < pointsPlayer && pointsComputer <= 21 && (pointsPlayer!=21)) {
+      alert("Gana la computadora");
+    } else if (pointsPlayer < pointsComputer && pointsPlayer <= 21 && (pointsComputer!=21)) {
+      alert("Ganaste");
+    }
+  },50)
+    
+}
 
 /* Referencias HTML */
 
@@ -67,15 +96,34 @@ buttonTake.addEventListener('click', () => {
   imgDeck.classList.add('deck');
   playerDecks.append(imgDeck);
 
-  if( pointsPlayer > 21 ){
-    console.warn("perdiste")
+  if (pointsPlayer >= 21) {
     buttonTake.disabled = true;
+    buttonStop.disabled = true;
+    computerTurn(pointsPlayer);
   }
 
-  if( pointsPlayer === 21 ) {
-    console.info("GANASTE")
-  }
 
+});
+
+buttonStop.addEventListener('click', () => {
+  buttonTake.disabled = true;
+  buttonStop.disabled = true;
+  computerTurn(pointsPlayer);
+});
+
+buttonNew.addEventListener('click', () => {
+  buttonTake.disabled = false;
+  buttonStop.disabled = false;
+
+  createDeck();
+
+  playerDecks.innerHTML = "";
+  computerDecks.innerHTML = "";
+
+  pointsPlayer = 0;
+  pointsComputer = 0;
+  labelPoints[0].innerText = 0;
+  labelPoints[1].innerText = 0;
 });
 
 
